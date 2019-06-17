@@ -1,0 +1,1 @@
+from egg_model.egg_model import PandaEgg

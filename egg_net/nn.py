@@ -64,13 +64,14 @@ class NeuralNetwork:
 
         for i in range(self.HLayers + 2):
             D.append([])
-
+        # Backpropagation:
+        # Calculate Layer errors:
         for i in range(self.HLayers + 1, 0, -1):
             if i == self.HLayers + 1:
                 D[i] = err*self.activation_list[i] * (1 - self.activation_list[i])
             else:
                 D[i] = np.dot(self.weight_list[i+1].T, D[i+1])*self.activation_list[i] * (1 - self.activation_list[i])
-
+        # Calculate Partial derivative
         for i in range(self.HLayers + 1, 0, -1):
             self.delta_weight[i] = np.dot(D[i], self.activation_list[i-1].T)
             self.delta_bias[i] = D[i]

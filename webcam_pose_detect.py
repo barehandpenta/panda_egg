@@ -3,6 +3,24 @@ import cv2
 import posenet
 import egg_model
 import numpy as np
+import socketio as socket
+
+sio = socket.Client()
+@sio.event
+def message(data):
+    pass
+@sio.on('reply')
+def on_message(data):
+    print('I received a message!')
+    print(data)
+@sio.event
+def connect():
+    print("I'm connected!")
+@sio.event
+def disconnect():
+    print("I'm disconnected!")
+sio.connect('http://18.222.152.167:3500')
+print('my sid is', sio.sid)
 
 
 def main():
@@ -10,7 +28,7 @@ def main():
         model_cfg, model_outputs = posenet.load_model(101, sess)
         output_stride = model_cfg['output_stride']
         scale_factor = 0.7125
-
+        last_res = 5
         cap = cv2.VideoCapture(0)
         cap.set(3, 640)
         cap.set(4, 480)
@@ -44,12 +62,19 @@ def main():
                 text = 'Nope'
             else:
                 res = eggNet.pose_detect(keypoint_coords)
-                if res == 0:
-                    text = 'STANDING'
-                elif res == 1:
-                    text = 'SITTING'
-                elif res == 2:
-                    text = 'LYING'
+                if res != last_res:
+                    if res == 0:
+                        sio.emit('message', '0')
+                        text = 'STANDING'
+                        last_res = res
+                    elif res == 1:
+                        sio.emit('message', '1')
+                        text = 'SITTING'
+                        last_res = res
+                    elif res == 2:
+                        sio.emit('message', '2')
+                        text = 'LYING'
+                        last_res = res
 
             cv2.putText(overlay_image, text, (0, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
 
